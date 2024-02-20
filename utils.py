@@ -1,0 +1,220 @@
+import json 
+import os
+import requests
+import logging
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from datetime import datetime
+
+def create_metadata(identifier: str, alambique:Collection):
+    '''
+    This function first checks if the entry is already in the database.
+    If the entry is in the database, it creates a metadata dictionary with the 
+    following fields:
+        - "@last_updated_at" : current_date
+        - "@updated_by" : task_run_id
+    If the entry is not in the database, in addition the the previos fields,it:
+    adds the following:
+        - "_id": identifier
+        - "@created_at" : current_date
+        - "@created_by" : task_run_id
+    The metadata is returned.
+    '''
+    # Current timestamp
+    current_date = datetime.utcnow()
+    
+    # Prepare the metadata to add or update
+    metadata = {
+        "@last_updated_at": current_date,
+        "@updated_by": os.getenv("PREFECT__CONTEXT__TASK_ID"),
+    }
+    
+    # Check if the entry exists in the database
+    existing_entry = alambique.find_one({"_id": identifier})
+    
+    if not existing_entry:
+        # This entry is new, so add additional creation metadata
+        metadata.update({
+            "_id": identifier,
+            "@created_at": current_date,
+            "@created_by": os.getenv("PREFECT__CONTEXT__TASK_ID")
+        })
+        
+    # Return the entry with the new fields
+    return metadata
+
+def add_metadata_to_entry(identifier: str, entry: dict, alambique:Collection):
+    '''
+    This function adds metadata regarding update and returns it.
+        {
+            "_id": "toolshed/trimal/cmd/1.4",
+            "@created_at": "2023-01-01T00:00:00Z", 
+            "@created_by": ObjectId("integration_20240210103607"),
+            "@last_updated_at": "2023-02-01T12:00:00Z",
+            "@updated_by": ObjectId("integration_20240214103607"),
+            "data": {
+                "id": "trimal",
+                "version": "1.4",
+                ...
+            }
+    '''
+    document_w_metadata = create_metadata(identifier, alambique)
+    document_w_metadata.update(entry)
+
+    return document_w_metadata
+
+def clean_date_field(tool:dict):
+    if 'about' in tool['data'].keys():
+        # date objects cause trouble and are prescindable
+        tool['data']['about'].pop('date', None)
+    return tool
+
+
+def push_entry(tool:dict, collection: Collection):
+    '''Push tool to collection.
+
+    tool: dictionary. Must have at least an '@id' key.
+    collection: collection where the tool will be pushed.
+    log : {'errors':[], 'n_ok':0, 'n_err':0, 'n_total':len(insts)}
+    '''    
+    try:
+        # if the entry already exists, update it
+        if collection.find_one({"_id": tool['_id']}):
+            update_entry(tool, collection)
+        # if the entry does not exist, insert it
+        else:
+            inset_new_entry(tool, collection)
+        
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+
+    else:
+        logging.info(f"pushed_to_db_ok - {tool['@id']}")
+    finally:
+        return
+    
+
+def update_entry(entry: dict, collection: Collection):
+    '''Updates an entry in the collection.
+
+    entry: dictionary. Must have at least an '_id' key.
+    collection: collection where the entry will be updated.
+    '''
+    filter_criteria = {"_id": entry['_id']}
+    unset_fields = {"$unset": {"@created_by": "", "@created_at": ""}}
+    try:
+        collection.update_one( filter_criteria, unset_fields, upsert=True)
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+    else:
+        logging.info(f"updated_to_db_ok - {entry['_id']}")
+
+def inset_new_entry(entry: dict, collection: Collection):
+    '''Inserts a new entry in the collection.
+
+    entry: dictionary. Must have at least an '_id' key.
+    collection: collection where the entry will be inserted.
+    '''
+    try:
+        collection.insert_one(entry)
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+    else:
+        logging.info(f"inserted_to_db_ok - {entry['_id']}")
+    finally:
+        return
+
+
+def insert_log_db(log: dict):
+    '''
+    Inserts log in "research-software-etl-logs collection"
+    '''
+    alambique = connect_db_local('research-software-etl-logs')
+    try:
+        alambique.insert_one(log)
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+    else:
+        logging.info(f"inserted_to_db_ok - {log['_id']}")
+    finally:
+        return
+
+
+def connect_db(collection_name: str):
+    '''Connect to MongoDB and return the database and collection objects.
+
+    '''
+    # variables come from .env file
+    mongoHost = os.getenv('HOST', default='localhost')
+    mongoPort = os.getenv('PORT', default='27017')
+    mongoUser = os.getenv('USER')
+    mongoPass = os.getenv('PWD')
+    mongoAuthSrc = os.getenv('AUTH_SRC', default='admin')
+    mongoDb = os.getenv('DB', default='oeb-research-software')
+
+    if collection_name == 'alambique':
+        collection_name = os.getenv('ALAMBIQUE', default='alambique')
+
+    # Connect to MongoDB
+    mongoClient = MongoClient(
+        host=mongoHost,
+        port=int(mongoPort),
+        username=mongoUser,
+        password=mongoPass,
+        authSource=mongoAuthSrc,
+    )
+    db = mongoClient[mongoDb]
+    alambique = db[collection_name]
+
+    return alambique
+
+
+def connect_db_local(collection_name: str):
+    '''Connect to MongoDB and return the database and collection objects.
+
+    '''
+    # Connect to MongoDB
+    mongoClient = MongoClient('localhost', 27017)
+    db = mongoClient['oeb-research-software']
+    alambique = db[collection_name]
+
+    return alambique
+
+
+# initializing session
+session = requests.Session()
+headers = {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit 537.36 (KHTML, like Gecko) Chrome",
+"Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
+
+
+def get_url(url, verb=False):
+    '''
+    Takes and url as an input and returns a json response
+    '''
+    try:
+        re = session.get(url, headers=headers, timeout=(10, 30))
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+        return None
+        
+    else:
+        if re.status_code == 200:
+            content_decoded = decode_json(re)
+            return(content_decoded)
+        else:
+            logging.warning(f"error - html_repoonse - error with {url}: status code {re.status_code}")
+            return None
+
+def decode_json(json_res):
+    '''
+    Decodes a json response
+    '''
+    try:
+        content_decoded=json.loads(json_res.text)
+    except Exception as e:
+        logging.warning(f"error - {type(e).__name__} - {e}")
+        logging.warning('Impossible to decode the json.')
+        return None
+    else:
+        return(content_decoded) 
+

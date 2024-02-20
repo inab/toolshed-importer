@@ -1,0 +1,59 @@
+import os
+import logging
+from utils import connect_db_local, push_entry, add_metadata_to_entry
+
+class dMetadataFetcher():
+    def __init__(self, tools_galaxy_metadata):
+        self.repositories = tools_galaxy_metadata
+        self.seen_tools = set()
+
+        
+    def get_dependencies(self, latest_revision):
+        if latest_revision['tool_dependencies']:
+            return(list(latest_revision['tool_dependencies'].keys()))
+        else:
+            return([])
+    
+    def retrieve_metadata(self, repo):
+        if repo:
+            latest_revision_id = max(iter(repo.keys()))
+            latest_revision = repo[latest_revision_id]
+            if latest_revision.get('repository', None):
+                if 'tools' in latest_revision['repository'].keys():
+                    dependencies = self.get_dependencies(latest_revision)
+                    homepage = latest_revision['repository']['homepage_url']
+                    repository = latest_revision['repository']['remote_repository_url']
+                    for tool in latest_revision['tools']:
+                        if tool['id']+tool['version'] not in self.seen_tools:
+                            entry = {}
+                            entry['id'] = tool['id']
+                            entry['name'] = tool['name']
+                            entry['version'] = tool['version']
+                            entry['dependencies'] = dependencies
+                            entry['homepage'] = homepage
+                            entry['repository'] = repository
+                            entry['repository_id'] = latest_revision['repository_id']
+                            entry['changeset_revision'] = latest_revision['changeset_revision']
+
+                            self.seen_tools.add(tool['id']+tool['version'])
+
+                            return(entry)
+        return({})
+
+    def process_metadata(self):
+        alambique = connect_db_local('alambique')
+        for repo in self.repositories:
+            entries = self.retrieve_metadata(repo)
+            if entries:
+                for entry in entries:
+                    identifier = f"galaxy_config/{entry['id']}/cmd/{entry['version']}"
+                    entry = {
+                        'data': entry,
+                        '@data_source': 'galaxy_toolshed',
+                    }
+                    document_w_metadata = add_metadata_to_entry(identifier, entry, alambique)
+                    push_entry(document_w_metadata, alambique)
+                
+            else:
+                continue
+        
