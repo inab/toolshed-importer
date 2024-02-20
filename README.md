@@ -44,9 +44,6 @@ If the ENV variables are stored in an `.env` file:
     pip install -r requirements.txt
     ```
 
-    > :exclamation: In MacOS, pipenv cannot install `lxml` 
-
-
 3. Execute the importer
 
     ```sh
