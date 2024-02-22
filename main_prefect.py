@@ -1,4 +1,4 @@
-from prefect import task, Flow, Parameter
+from prefect import task, flow
 import logging
 from dotenv import load_dotenv
 from repos_metadata_importer import reposFetcher
@@ -17,10 +17,9 @@ def process_tools_metadata(repositories_metadata):
     dMFetcher = dMetadataFetcher(tools_galaxy_metadata=repositories_metadata)
     dMFetcher.process_metadata()
 
-with Flow("Data Import Flow") as flow:
-    # Define flow parameters
-    log_level = Parameter("log_level", default="INFO")
-    log_dir = Parameter("log_dir", default="./logs/summary.log")
+# Define the flow
+@flow
+def import_data():
 
     # Environment variables
     load_dotenv()
@@ -31,4 +30,4 @@ with Flow("Data Import Flow") as flow:
 
 # Execute the flow
 if __name__ == "__main__":
-    flow.run(parameters={"log_level": "DEBUG", "log_dir": "./logs/summary.log"})
+    import_data.run()
