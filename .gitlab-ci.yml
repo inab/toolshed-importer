@@ -2,23 +2,22 @@ image: python:3.8-alpine
 
 run_metadata_import:
   stage: import
-    script:
-      - pip install --cache-dir .pip_cache/ -r requirements.txt
-      - mkdir -p logs
-      - DATE=$(date +%F)
-      - python3 ./main.py -l DEBUG -d logs/summary_$DATE.log
-    rules:
-      - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      - if: '$CI_PIPELINE_SOURCE == "web"'
-    artifacts:
-      paths:
-        - logs/
-      expire_in: 4 weeks
-    
-    cache:
-      paths:
-        - .pip_cache/
-      key: "${CI_COMMIT_REF_SLUG}"
+  script:
+    - pip install --cache-dir .pip_cache/ -r requirements.txt
+    - mkdir -p logs
+    - DATE=$(date +%F)
+    - python3 ./main.py -l DEBUG -d logs/summary_$DATE.log
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  artifacts:
+    paths:
+      - logs/
+    expire_in: 4 weeks
+  cache:
+    paths:
+      - .pip_cache/
+    key: "${CI_COMMIT_REF_SLUG}"
 
 build_and_push:
   image: docker:latest
@@ -29,8 +28,7 @@ build_and_push:
     - tags
   script:
     - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
-    - docker build -t "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG" -f Dockerfile .
-    - docker push "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG"
+    - docker build -t "$DOCKERHUB_USERNAME/toolshed_metadata_importer:$CI_COMMIT_TAG" -f Dockerfile .
+    - docker push "$DOCKERHUB_USERNAME/toolshed_metadata_importer:$CI_COMMIT_TAG"
   after_script:
     - docker logout
-
