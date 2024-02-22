@@ -18,7 +18,7 @@ def process_tools_metadata(repositories_metadata):
     dMFetcher.process_metadata()
 
 # Define the flow
-@flow
+@flow(log_prints=True)
 def import_data():
 
     # Environment variables
@@ -30,4 +30,4 @@ def import_data():
 
 # Execute the flow
 if __name__ == "__main__":
-    import_data.run()
+    import_data()
