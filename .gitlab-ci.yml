@@ -1,19 +1,5 @@
 image: python:3.8-alpine
 
-build_and_push:
-  image: docker:latest
-  stage: deploy
-  services:
-    - docker:dind
-  only:
-    - tags
-  script:
-    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
-    - docker build -t "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG" -f Dockerfile .
-    - docker push "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG"
-  after_script:
-    - docker logout
-
 run_metadata_import:
   stage: import
     script:
@@ -33,3 +19,18 @@ run_metadata_import:
       paths:
         - .pip_cache/
       key: "${CI_COMMIT_REF_SLUG}"
+
+build_and_push:
+  image: docker:latest
+  stage: deploy
+  services:
+    - docker:dind
+  only:
+    - tags
+  script:
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+    - docker build -t "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG" -f Dockerfile .
+    - docker push "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG"
+  after_script:
+    - docker logout
+
