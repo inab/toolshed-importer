@@ -1,6 +1,6 @@
 import os
 import logging
-from utils import connect_db_local, push_entry, add_metadata_to_entry
+from utils import connect_db, push_entry, add_metadata_to_entry
 
 class dMetadataFetcher():
     def __init__(self, tools_galaxy_metadata):
@@ -15,11 +15,12 @@ class dMetadataFetcher():
             return([])
     
     def retrieve_metadata(self, repo):
+        entries = []
         if repo:
             latest_revision_id = max(iter(repo.keys()))
             latest_revision = repo[latest_revision_id]
             if latest_revision.get('repository', None):
-                if 'tools' in latest_revision['repository'].keys():
+                if 'tools' in latest_revision.keys():
                     dependencies = self.get_dependencies(latest_revision)
                     homepage = latest_revision['repository']['homepage_url']
                     repository = latest_revision['repository']['remote_repository_url']
@@ -37,19 +38,19 @@ class dMetadataFetcher():
 
                             self.seen_tools.add(tool['id']+tool['version'])
 
-                            return(entry)
-        return({})
+                            entries.append(entry)
+        return(entries)
 
     def process_metadata(self):
-        alambique = connect_db_local('alambique')
+        alambique = connect_db('alambique')
         for repo in self.repositories:
             entries = self.retrieve_metadata(repo)
             if entries:
                 for entry in entries:
-                    identifier = f"galaxy_config/{entry['id']}/cmd/{entry['version']}"
+                    identifier = f"galaxy_metadata/{entry['id']}/cmd/{entry['version']}"
                     entry = {
                         'data': entry,
-                        '@data_source': 'galaxy_toolshed',
+                        '@data_source': 'galaxy_metadata',
                     }
                     document_w_metadata = add_metadata_to_entry(identifier, entry, alambique)
                     push_entry(document_w_metadata, alambique)

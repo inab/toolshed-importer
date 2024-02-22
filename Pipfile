@@ -12,6 +12,7 @@ pymongo = "*"
 python-dotenv = "*"
 pytest = "*"
 lxml = "*"
+prefect = "*"
 
 [requires]
 python_version = "3.8"
