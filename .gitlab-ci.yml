@@ -1,9 +1,5 @@
 image: python:3.8-alpine
 
-dependencies:
-  script:
-    - pip install -r $CI_PROJECT_DIR/requirements.txt
-
 build_and_push:
   image: docker:latest
   stage: deploy
