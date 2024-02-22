@@ -3,9 +3,7 @@ import logging
 from dotenv import load_dotenv
 from repos_metadata_importer import reposFetcher
 from galaxy_metadata import dMetadataFetcher
-from prefect_gitlab.repositories import GitLabRepository
 
-gitlab_repository_block = GitLabRepository.load("gitlab-bsc-toolshed-metadata")
 
 @task
 def fetch_tools_metadata():
