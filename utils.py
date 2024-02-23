@@ -154,16 +154,6 @@ def connect_db(collection_name: str):
 
     if collection_name == 'alambique':
         collection_name = os.getenv('ALAMBIQUE', default='alambique')
-        
-    #print all details for debugging 
-    print(f"mongoHost: {mongoHost}")
-    print(f"mongoPort: {mongoPort}")
-    print(f"mongoUser: {mongoUser}")
-    print(f"mongoPass: {mongoPass}")
-    print(f"mongoAuthSrc: {mongoAuthSrc}")
-    print(f"mongoDb: {mongoDb}")
-    print(f"collection_name: {collection_name}")
-
 
     # Connect to MongoDB
     mongoClient = MongoClient(

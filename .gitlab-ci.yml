@@ -1,29 +1,32 @@
 image: python:3.8-alpine
 
+stages:
+  - main_task
+  - summarize
+
 run_metadata_import:
-  stage: deploy
+  stage: main_task
   before_script:
-    - apk add --no-cache bash # Ensure bash is available for date manipulation
+    - apk add --no-cache bash coreutils # Ensure bash and GNU coreutils are available
   script:
     - pip install --cache-dir .pip_cache/ -r requirements.txt
-    - mkdir -p logs
-    - |
-      echo "🕒 Start Time: $(date)"
-    - START_TIME=$SECONDS
-    - python3 ./main.py -l DEBUG
-    - END_TIME=$SECONDS
+    - echo "Running main task and capturing logs"
+    - START_TIME=$(date +%s)
+    - python3 ./main.py -l DEBUG | tee main_task_logs.txt
+    - ERRORS=$(grep -i "error" main_task_logs.txt | wc -l)
+    - echo $ERRORS > error_count.txt
+    - END_TIME=$(date +%s)
     - DURATION=$((END_TIME-START_TIME))
-    - ERRORS=$(grep -c 'error' logs/output.log) # Count warnings in output.log
-    - echo "📊 **Execution Summary** 📊"
-    - |
-      echo -e "📊 **Execution Summary** 📊\n\
-      🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n\
-      🏁 End Time: $(date -d @$END_TIME +"%Y-%m-%d %H:%M:%S")\n\
-      ⏱ Duration: $DURATION seconds\n\
-      ❌ Number of Errors (Warnings): $ERRORS" | tee logs/summary.log
+    - echo $START_TIME > start_time.txt
+    - echo $END_TIME > end_time.txt
+    - echo $DURATION > duration.txt
   artifacts:
     paths:
-      - logs/
+      - main_task_logs.txt
+      - error_count.txt
+      - start_time.txt
+      - end_time.txt
+      - duration.txt
     expire_in: 4 weeks
   cache:
     paths:
@@ -32,3 +35,14 @@ run_metadata_import:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
+
+summarize:
+  stage: summarize
+  script:
+    - export ERRORS=$(cat error_count.txt)
+    - export START_TIME=$(cat start_time.txt)
+    - export END_TIME=$(cat end_time.txt)
+    - export DURATION=$(cat duration.txt)
+    - echo -e "📊 **Execution Summary** 📊\n      🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n      🏁 End Time: $(date -d @$END_TIME +"%Y-%m-%d %H:%M:%S")\n      ⏱ Duration: $DURATION seconds\n      ❌ Number of Errors (Warnings): $ERRORS"
+  needs:
+    - run_metadata_import
