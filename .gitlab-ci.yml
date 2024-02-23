@@ -3,6 +3,7 @@ image: python:3.8-alpine
 stages:
   - main_task
   - summarize
+  - deploy
 
 run_metadata_import:
   stage: main_task
