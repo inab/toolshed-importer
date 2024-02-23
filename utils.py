@@ -116,9 +116,10 @@ def update_entry(entry: dict, collection: Collection):
     update_document = entry.copy()
 
     if collection.find({'_id': entry['_id']}):
-        # Remove fields that should not be updated
-        update_document.pop('@created_by', None)
-        update_document.pop('@created_at', None)
+        # keep the original creation metadata
+        original_entry = collection.find_one({'_id': entry['_id']})
+        update_document['@created_at'] = original_entry['@created_at']
+        update_document['@created_by'] = original_entry['@created_by']
 
     try:
         # Use replace_one instead of update_one for replacing the whole document
