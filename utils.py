@@ -115,13 +115,6 @@ def update_entry(entry: dict, collection: Collection):
     # Copy entry to avoid mutating the original dict
     update_document = entry.copy()
 
-    '''
-    if collection.find_one({'_id': entry['_id']}):
-        # keep the original creation metadata
-        original_entry = collection.find_one({'_id': entry['_id']})
-        update_document['@created_at'] = original_entry['@created_at']
-        update_document['@created_by'] = original_entry['@created_by']
-    '''
     # keep the original creation metadata if entry exists in the collection
     original_entry = collection.find_one({'_id': entry['_id']})
     if original_entry:
