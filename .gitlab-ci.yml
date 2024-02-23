@@ -10,7 +10,7 @@ run_metadata_import:
     - |
       echo "🕒 Start Time: $(date)"
     - START_TIME=$SECONDS
-    - python3 ./main.py -l DEBUG -d logs/summary_$(date +%F).log > logs/output.log 2>&1
+    - python3 ./main.py -l DEBUG
     - END_TIME=$SECONDS
     - DURATION=$((END_TIME-START_TIME))
     - ERRORS=$(grep -c 'error' logs/output.log) # Count warnings in output.log
