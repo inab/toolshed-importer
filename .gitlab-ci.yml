@@ -15,11 +15,13 @@ run_metadata_import:
     - DURATION=$((END_TIME-START_TIME))
     - ERRORS=$(grep -c 'error' logs/output.log) # Count warnings in output.log
     - |
-      echo -e "📊 **Execution Summary** 📊\n\
-      🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n\
-      🏁 End Time: $(date -d @$END_TIME +"%Y-%m-%d %H:%M:%S")\n\
+      echo -e "-----------📊 **Execution Summary** 📊-------------\n\
+      🚀 Start Time: $(date -d $START_TIME +"%Y-%m-%d %H:%M:%S")\n\
+      🏁 End Time: $(date -d $END_TIME +"%Y-%m-%d %H:%M:%S")\n\
       ⏱ Duration: $DURATION seconds\n\
-      ❌ Number of Errors (Warnings): $ERRORS" | tee logs/summary.log
+      ❌ Number of Errors (error): $ERRORS" | tee logs/summary.log\n\
+      --------------------------------------------------------------"
+
   artifacts:
     paths:
       - logs/
