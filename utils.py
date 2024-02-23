@@ -102,34 +102,40 @@ def push_entry(tool:dict, collection: Collection):
     
 
 def update_entry(entry: dict, collection: Collection):
-    '''Updates an entry in the collection.
-
-    entry: dictionary. Must have at least an '_id' key.
+    '''Updates an entry in the collection or inserts it if it doesn't exist.
+    
+    entry: dictionary. Must have at least an '_id' key and '@created_at', '@created_by' for new entries.
     collection: collection where the entry will be updated.
     '''
-    # Ensure '_id' exists in entry
     if '_id' not in entry:
         logging.error("Entry must contain an '_id' field.")
         return
 
-    # Copy entry to avoid mutating the original dict
+    filter_criteria = {"_id": entry['_id']}
+
+    # Check if the document already exists.
+    document_exists = collection.count_documents(filter_criteria) > 0
+
     update_document = entry.copy()
 
-    # Remove fields that should not be updated
-    update_document.pop('@created_by', None)
-    update_document.pop('@created_at', None)
+    if document_exists:
+        # If updating, remove '@created_at' and '@created_by' to avoid overwriting them.
+        update_document.pop('@created_at', None)
+        update_document.pop('@created_by', None)
+        update_action = {"$set": update_document}
+    else:
+        # If inserting, keep '@created_at' and '@created_by' fields.
+        update_action = update_document
 
     try:
-        # Use replace_one instead of update_one for replacing the whole document
-        # Make sure to set upsert=True if you want to insert a new document when no document matches the filter
-        result = collection.replace_one({"_id": entry['_id']}, update_document, upsert=True)
-        if result.matched_count > 0:
-            logging.info(f"Document with _id {entry['_id']} updated successfully.")
+        # Use replace_one with upsert=True to update or insert the document.
+        result = collection.replace_one(filter_criteria, update_action, upsert=True)
+        if result.matched_count > 0 or result.upserted_id:
+            logging.info(f"Document with _id {entry['_id']} successfully processed.")
         else:
-            logging.info(f"No matching document found with _id {entry['_id']}. A new document has been inserted.")
+            logging.info(f"No operation performed for _id {entry['_id']}.")
     except Exception as e:
-        logging.warning(f"Error updating document - {type(e).__name__} - {e}")
-
+        logging.warning(f"Error - {type(e).__name__} - {e}")
 
 
 def inset_new_entry(entry: dict, collection: Collection):
