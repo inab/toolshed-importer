@@ -12,12 +12,11 @@ run_metadata_import:
     - pip install --cache-dir .pip_cache/ -r requirements.txt
     - echo "Running main task and capturing logs"
     - START_TIME=$(date +%s)
-    - python3 ./main.py -l DEBUG | tee main_task_logs.txt
-    - ERRORS=$(grep -i "error" main_task_logs.txt | wc -l)
-    - echo $ERRORS > error_count.txt
+    - mkdir -p logs
+    - python3 ./main.py -l DEBUG > logs/output.log
+    - ERRORS=$(grep -c 'error' logs/output.log) # Count warnings in output.log
     - END_TIME=$(date +%s)
     - DURATION=$((END_TIME-START_TIME))
-    - ERRORS=$(grep -c 'error' logs/output.log) # Count warnings in output.log
     - |
       echo -e "------------📊 **Execution Summary** 📊----------------------\n\
       🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n\
@@ -37,3 +36,17 @@ run_metadata_import:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
+
+build_and_push:
+  image: docker:latest
+  stage: deploy
+  services:
+    - docker:dind
+  only:
+    - tags
+  script:
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+    - docker build -t "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG" -f Dockerfile .
+    - docker push "$DOCKERHUB_USERNAME/toolshed_metadata_impoter:$CI_COMMIT_TAG"
+  after_script:
+    - docker logout
