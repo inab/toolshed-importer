@@ -115,12 +115,14 @@ def update_entry(entry: dict, collection: Collection):
     # Copy entry to avoid mutating the original dict
     update_document = entry.copy()
 
-    if collection.find({'_id': entry['_id']}):
+    '''
+    if collection.find_one({'_id': entry['_id']}):
         # keep the original creation metadata
         original_entry = collection.find_one({'_id': entry['_id']})
         update_document['@created_at'] = original_entry['@created_at']
         update_document['@created_by'] = original_entry['@created_by']
-
+    '''
+    
     try:
         # Use replace_one instead of update_one for replacing the whole document
         # Make sure to set upsert=True if you want to insert a new document when no document matches the filter
