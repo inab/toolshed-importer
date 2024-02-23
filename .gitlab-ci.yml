@@ -44,8 +44,8 @@ summarize:
     - export END_TIME=$(cat end_time.txt)
     - export DURATION=$(cat duration.txt)
     - echo "📊 **Execution Summary** 📊"
-    - echo "🚀 Start Time $(date -d "@$START_TIME" +"%Y-%m-%d %H:%M:%S")"
-    - echo "🏁 End Time $(date -d "@$END_TIME" +"%Y-%m-%d %H:%M:%S")"
+    - echo "🚀 Start Time $START_TIME"
+    - echo "🏁 End Time $END_TIME"
     - echo "⏱ Duration $DURATION seconds"
     - echo "❌ Number of Errors (Warnings) $ERRORS"
   needs:
