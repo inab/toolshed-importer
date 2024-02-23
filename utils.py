@@ -148,7 +148,7 @@ def connect_db(collection_name: str):
     mongoHost = os.getenv('HOST', default='localhost')
     mongoPort = os.getenv('PORT', default='27017')
     mongoUser = os.getenv('USER')
-    mongoPass = os.getenv('PWD')
+    mongoPass = os.getenv('PASS')
     mongoAuthSrc = os.getenv('AUTH_SRC', default='admin')
     mongoDb = os.getenv('DB', default='oeb-research-software')
 
@@ -164,7 +164,7 @@ def connect_db(collection_name: str):
     print(f"mongoDb: {mongoDb}")
     print(f"collection_name: {collection_name}")
 
-    
+
     # Connect to MongoDB
     mongoClient = MongoClient(
         host=mongoHost,
