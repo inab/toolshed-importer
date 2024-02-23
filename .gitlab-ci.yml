@@ -21,7 +21,7 @@ run_metadata_import:
       🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n\
       🏁 End Time: $(date -d @$END_TIME +"%Y-%m-%d %H:%M:%S")\n\
       ⏱ Duration: $DURATION seconds\n\
-      ------------------------------------------------------------------------"
+      -----------------------------------------------------------"
   artifacts:
     expire_in: 4 weeks
   cache:
