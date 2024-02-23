@@ -47,8 +47,8 @@ summarize:
     - |
       cat <<EOF
       📊 **Execution Summary** 📊
-      🚀 Start Time: $(date -d "@$START_TIME" +"%Y-%m-%d %H:%M:%S")
-      🏁 End Time: $(date -d "@$END_TIME" +"%Y-%m-%d %H:%M:%S")
+      🚀 Start Time: $(date -d "@$START_TIME")
+      🏁 End Time: $(date -d "@$END_TIME")
       ⏱ Duration: $DURATION seconds
       ❌ Number of Errors (Warnings): $ERRORS
       EOF
