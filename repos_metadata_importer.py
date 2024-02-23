@@ -20,7 +20,7 @@ class reposFetcher():
         # fetch metadata of each repository using id
         logging.debug('Fetching metadata of each repository from the Galaxy Toolshed API')
 
-        for repository_dict in repositories_list:
+        for repository_dict in repositories_list[:10]:
             # Only unrestricted repositories are accessible
             if repository_dict['type']=='unrestricted':
                 self.tools.append(galaxyTool(repository_dict))
