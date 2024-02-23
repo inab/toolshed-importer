@@ -44,9 +44,9 @@ summarize:
     - export END_TIME=$(cat end_time.txt)
     - export DURATION=$(cat duration.txt)
     - echo "📊 **Execution Summary** 📊"
-    - echo "🚀 Start Time $START_TIME"
-    - echo "🏁 End Time $END_TIME"
-    - echo "⏱ Duration $DURATION seconds"
-    - echo "❌ Number of Errors (Warnings) $ERRORS"
+    - echo "🚀 Start Time ${START_TIME}"
+    - echo "🏁 End Time ${END_TIME}"
+    - echo "⏱ Duration ${DURATION seconds"
+    - echo "❌ Number of Errors (Warnings) ${ERRORS}"
   needs:
     - run_metadata_import
