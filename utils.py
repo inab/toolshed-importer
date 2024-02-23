@@ -107,14 +107,30 @@ def update_entry(entry: dict, collection: Collection):
     entry: dictionary. Must have at least an '_id' key.
     collection: collection where the entry will be updated.
     '''
-    filter_criteria = {"_id": entry['_id']}
-    unset_fields = {"$unset": {"@created_by": "", "@created_at": ""}}
+    # Ensure '_id' exists in entry
+    if '_id' not in entry:
+        logging.error("Entry must contain an '_id' field.")
+        return
+
+    # Copy entry to avoid mutating the original dict
+    update_document = entry.copy()
+
+    # Remove fields that should not be updated
+    update_document.pop('@created_by', None)
+    update_document.pop('@created_at', None)
+
     try:
-        collection.update_one( filter_criteria, unset_fields, upsert=True)
+        # Use replace_one instead of update_one for replacing the whole document
+        # Make sure to set upsert=True if you want to insert a new document when no document matches the filter
+        result = collection.replace_one({"_id": entry['_id']}, update_document, upsert=True)
+        if result.matched_count > 0:
+            logging.info(f"Document with _id {entry['_id']} updated successfully.")
+        else:
+            logging.info(f"No matching document found with _id {entry['_id']}. A new document has been inserted.")
     except Exception as e:
-        logging.warning(f"error - {type(e).__name__} - {e}")
-    else:
-        logging.info(f"updated_to_db_ok - {entry['_id']}")
+        logging.warning(f"Error updating document - {type(e).__name__} - {e}")
+
+
 
 def inset_new_entry(entry: dict, collection: Collection):
     '''Inserts a new entry in the collection.
