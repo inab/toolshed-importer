@@ -1,6 +1,6 @@
 import os
 import logging
-from utils import connect_db, push_entry, add_metadata_to_entry
+from utils import connect_db, update_entry, add_metadata_to_entry
 
 class dMetadataFetcher():
     def __init__(self, tools_galaxy_metadata):
@@ -53,7 +53,7 @@ class dMetadataFetcher():
                         '@data_source': 'galaxy_metadata',
                     }
                     document_w_metadata = add_metadata_to_entry(identifier, entry, alambique)
-                    push_entry(document_w_metadata, alambique)
+                    update_entry(document_w_metadata, alambique)
                 
             else:
                 continue

@@ -22,13 +22,30 @@ def create_metadata(identifier: str, alambique:Collection):
     '''
     # Current timestamp
     current_date = datetime.utcnow()
-    
+    # Commit url
+    CI_PROJECT_NAMESPACE = os.getenv("CI_PROJECT_NAMESPACE")
+    CI_PROJECT_NAME = os.getenv("CI_PROJECT_NAME")
+    CI_COMMIT_SHA = os.getenv("CI_COMMIT_SHA")
+    commit_url = f"https://gitlab.com/{CI_PROJECT_NAMESPACE}/{CI_PROJECT_NAME}/-/commit/{CI_COMMIT_SHA}"
     # Prepare the metadata to add or update
     metadata = {
         "_id": identifier,
         "@last_updated_at": current_date,
-        "@updated_by": os.getenv("PREFECT__CONTEXT__TASK_ID"),
+        "@updated_by": os.getenv(commit_url),
+        "@updated_logs": os.getenv("CI_PIPELINE_URL")
     }
+    
+    # Check if the entry exists in the database
+    existing_entry = alambique.find_one({"_id": identifier})
+    
+    if not existing_entry:
+        # This entry is new, so add additional creation metadata
+        metadata.update({
+            "_id": identifier,
+            "@created_at": current_date,
+            "@created_by": os.getenv(commit_url),
+            "@created_logs": os.getenv("CI_PIPELINE_URL")
+        })
         
     # Return the entry with the new fields
     return metadata
