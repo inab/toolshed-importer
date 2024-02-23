@@ -1,6 +1,7 @@
 import logging
 import argparse
 from dotenv import load_dotenv
+import sys
 
 from repos_metadata_importer import reposFetcher
 from galaxy_metadata import dMetadataFetcher
@@ -19,18 +20,20 @@ def import_data():
             help=("Set the logging level"),
             default="INFO",
         )
+        '''
         parser.add_argument(
             "--logdir", "-d",
             help=("Set the logging directory"),
             default="./logs/summary.log",
         )
+        '''
         args = parser.parse_args()
         numeric_level = getattr(logging, args.loglevel.upper())
-        logs_dir = args.logdir
+        #logs_dir = args.logdir
         print(f"Logging level: {numeric_level}")
-        print(f"Logging directory: {logs_dir}")
+        #print(f"Logging directory: {logs_dir}")
 
-        logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - toolshed - %(message)s', filename=f'{logs_dir}', filemode='w')
+        logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - toolshed - %(message)s', stream=sys.stdout)        
         logging.getLogger('urllib3').setLevel(logging.INFO)
 
 
