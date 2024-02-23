@@ -43,6 +43,7 @@ summarize:
     - export START_TIME=$(cat start_time.txt)
     - export END_TIME=$(cat end_time.txt)
     - export DURATION=$(cat duration.txt)
+    - echo "📊 **Execution Summary** 📊"
     - |
       cat <<EOF
       📊 **Execution Summary** 📊
