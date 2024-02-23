@@ -25,20 +25,10 @@ def create_metadata(identifier: str, alambique:Collection):
     
     # Prepare the metadata to add or update
     metadata = {
+        "_id": identifier,
         "@last_updated_at": current_date,
         "@updated_by": os.getenv("PREFECT__CONTEXT__TASK_ID"),
     }
-    
-    # Check if the entry exists in the database
-    existing_entry = alambique.find_one({"_id": identifier})
-    
-    if not existing_entry:
-        # This entry is new, so add additional creation metadata
-        metadata.update({
-            "_id": identifier,
-            "@created_at": current_date,
-            "@created_by": os.getenv("PREFECT__CONTEXT__TASK_ID")
-        })
         
     # Return the entry with the new fields
     return metadata
@@ -89,7 +79,7 @@ def push_entry(tool:dict, collection: Collection):
         logging.warning(f"error - {type(e).__name__} - {e}")
 
     else:
-        logging.info(f"pushed_to_db_ok - {tool['@id']}")
+        logging.info(f"pushed_to_db_ok - {tool['_id']}")
     finally:
         return
     
