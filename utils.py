@@ -26,7 +26,7 @@ def create_metadata(identifier: str, alambique:Collection):
     CI_PROJECT_NAMESPACE = os.getenv("CI_PROJECT_NAMESPACE")
     CI_PROJECT_NAME = os.getenv("CI_PROJECT_NAME")
     CI_COMMIT_SHA = os.getenv("CI_COMMIT_SHA")
-    commit_url = f"https://gitlab.com/{CI_PROJECT_NAMESPACE}/{CI_PROJECT_NAME}/-/commit/{CI_COMMIT_SHA}"
+    commit_url = f"https://gitlab.bsc.es/{CI_PROJECT_NAMESPACE}/{CI_PROJECT_NAME}/-/commit/{CI_COMMIT_SHA}"
     # Prepare the metadata to add or update
     metadata = {
         "_id": identifier,
