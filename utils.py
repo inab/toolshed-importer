@@ -31,7 +31,7 @@ def create_metadata(identifier: str, alambique:Collection):
     metadata = {
         "_id": identifier,
         "@last_updated_at": current_date,
-        "@updated_by": os.getenv(commit_url),
+        "@updated_by": commit_url,
         "@updated_logs": os.getenv("CI_PIPELINE_URL")
     }
     
@@ -43,7 +43,7 @@ def create_metadata(identifier: str, alambique:Collection):
         metadata.update({
             "_id": identifier,
             "@created_at": current_date,
-            "@created_by": os.getenv(commit_url),
+            "@created_by": commit_url,
             "@created_logs": os.getenv("CI_PIPELINE_URL")
         })
         
