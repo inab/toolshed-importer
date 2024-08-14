@@ -11,17 +11,15 @@ run_metadata_import:
     - apk add --no-cache bash # Ensure bash is available for date manipulation
   script:
     - pip install --cache-dir .pip_cache/ -r requirements.txt
-    - echo "Running main task and capturing logs"
+    - echo "⚙️ Running main task"
     - START_TIME=$(date +%s)
     - python3 ./main.py -l DEBUG
     - END_TIME=$(date +%s)
     - DURATION=$((END_TIME-START_TIME))
     - |
-      echo -e "------------📊 **Execution Summary** 📊----------------------\n\
-      🚀 Start Time: $(date -d @$START_TIME +"%Y-%m-%d %H:%M:%S")\n\
-      🏁 End Time: $(date -d @$END_TIME +"%Y-%m-%d %H:%M:%S")\n\
-      ⏱ Duration: $DURATION seconds\n\
-      -----------------------------------------------------------"
+      echo -e "\n\
+      ✨ Execution finished\n\
+      \n\"
   artifacts:
     expire_in: 4 weeks
   cache:

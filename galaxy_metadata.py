@@ -9,7 +9,7 @@ class dMetadataFetcher():
 
         
     def get_dependencies(self, latest_revision):
-        if latest_revision['tool_dependencies']:
+        if latest_revision.get('tool_dependencies'):
             return(list(latest_revision['tool_dependencies'].keys()))
         else:
             return([])
@@ -22,23 +22,27 @@ class dMetadataFetcher():
             if latest_revision.get('repository', None):
                 if 'tools' in latest_revision.keys():
                     dependencies = self.get_dependencies(latest_revision)
-                    homepage = latest_revision['repository']['homepage_url']
-                    repository = latest_revision['repository']['remote_repository_url']
+                    homepage = latest_revision['repository'].get('homepage_url')
+                    repository = latest_revision['repository'].get('remote_repository_url')
                     for tool in latest_revision['tools']:
-                        if tool['id']+tool['version'] not in self.seen_tools:
-                            entry = {}
-                            entry['id'] = tool['id']
-                            entry['name'] = tool['name']
-                            entry['version'] = tool['version']
-                            entry['dependencies'] = dependencies
-                            entry['homepage'] = homepage
-                            entry['repository'] = repository
-                            entry['repository_id'] = latest_revision['repository_id']
-                            entry['changeset_revision'] = latest_revision['changeset_revision']
+                        if tool.get('id') and tool.get('version'):
+                            if tool['id']+tool['version'] not in self.seen_tools:
+                                entry = {}
+                                entry['id'] = tool['id']
+                                if 'name' in tool.keys():
+                                    entry['name'] = tool.get('name')
+                                else:
+                                    entry['name'] = tool['id']
+                                entry['version'] = tool['version']
+                                entry['dependencies'] = dependencies
+                                entry['homepage'] = homepage
+                                entry['repository'] = repository
+                                entry['repository_id'] = latest_revision.get('repository_id')
+                                entry['changeset_revision'] = latest_revision.get('changeset_revision')
 
-                            self.seen_tools.add(tool['id']+tool['version'])
+                                self.seen_tools.add(tool['id']+tool['version'])
 
-                            entries.append(entry)
+                                entries.append(entry)
         return(entries)
 
     def process_metadata(self):
