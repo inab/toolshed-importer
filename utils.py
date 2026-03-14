@@ -116,12 +116,13 @@ def update_entry(entry: dict, collection: Collection):
     update_document = entry.copy()
 
     # keep the original creation metadata if entry exists in the collection
+    ''''not for now
     original_entry = collection.find_one({'_id': entry['_id']})
     if original_entry:
         update_document['@created_at'] = original_entry['@created_at']
         update_document['@created_by'] = original_entry['@created_by']
         update_document['@created_logs'] = original_entry['@created_logs']
-                                         
+    '''                                     
 
     try:
         # Use replace_one instead of update_one for replacing the whole document
@@ -172,12 +173,12 @@ def connect_db(collection_name: str):
 
     '''
     # variables come from .env file
-    mongoHost = os.getenv('HOST', default='localhost')
-    mongoPort = os.getenv('PORT', default='27017')
-    mongoUser = os.getenv('USER')
-    mongoPass = os.getenv('PASS')
-    mongoAuthSrc = os.getenv('AUTH_SRC', default='admin')
-    mongoDb = os.getenv('DB', default='oeb-research-software')
+    mongoHost = os.getenv('MONGO_HOST', default='localhost')
+    mongoPort = os.getenv('MONGO_PORT', default='27017')
+    mongoUser = os.getenv('MONGO_USER')
+    mongoPass = os.getenv('MONGO_PASS')
+    mongoAuthSrc = os.getenv('MONGO_UTH_SRC', default='admin')
+    mongoDb = os.getenv('MONGO_DB', default='oeb-research-software')
 
     if collection_name == 'alambique':
         collection_name = os.getenv('ALAMBIQUE', default='alambique')

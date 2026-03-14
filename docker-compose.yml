@@ -1,0 +1,9 @@
+services:
+  toolshed-importer:
+    image: ghcr.io/inab/toolshed-importer:latest
+    container_name: toolshed-importer
+    restart: "no"
+    env_file:
+      - .env
+    volumes:
+      - ./toolshed-logs:/toolshed/logs
