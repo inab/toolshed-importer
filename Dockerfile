@@ -22,4 +22,4 @@ COPY . .
 
 RUN mkdir -p /toolshed/logs
 
-CMD ["python", "main.py", "-l=DEBUG", "-d=/toolshed/logs/summary.log"]
+CMD ["python", "main.py", "-l=DEBUG"]
