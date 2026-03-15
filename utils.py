@@ -220,7 +220,7 @@ def get_url(url, verb=False):
     Takes and url as an input and returns a json response
     '''
     try:
-        re = session.get(url, headers=headers, timeout=(10, 30))
+        re = session.get(url, headers=headers, timeout=(30, 60))
     except Exception as e:
         logging.warning(f"error - {type(e).__name__} - {e}")
         return None
